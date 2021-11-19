@@ -43,8 +43,9 @@
     <!-- All -->
     <target name="all" depends="prepare, required, level1,
         gimix, swtpc, color, fm7, dragon64, cms9609, cms9619,
-        color3, fm11, dragon128, cms9639, virtual,
-        utilities, y2k, dynacalc, stylograph, rms, basic09">
+        exorsr,
+        color3, fm11, dragon128, cms9639, positron9000, virtual,
+        utilities, y2k,  stylograph">
     </target>
 
     <!-- Required by other Maven modules -->
@@ -158,6 +159,21 @@
         <assemble src="OS9p2" home="cms9619"  verify="7232e5c43e51bcbb1ae0fcd4ccf591ac"/>
     </target>
 
+    <!-- EXORset 30 -->
+    <target name="exorsr" depends="prepare">
+        <assemble src="EXORdisk3" home="exorsr" verify="6a0afcd8df0f6c5baf56252e8b37eec4"/>
+        <assemble src="OS9p1_ed9" home="exorsr"  verify="7bfef8a468a3a8269c973044abd74506"/>
+        <assemble src="OS9p2_ed5" home="exorsr"  verify="4b20dd87826af09ac1bae8ceb8487442"/>
+        <assemble verify="01914cb234a7192d2a18b11558b252c1" src="Boot" home="exorsr"/>
+        <assemble verify="38882ca08b0a9cac635c14fb1efb7031" src="EXORctlr" home="exorsr"/>
+        <assemble verify="b0210aa8e50ffa210b127dbbd4f9fd3c" src="Clock_ed3" home="exorsr"/>
+        <assemble verify="c9459c83e2dbc3a119c27ec0075d421f" src="Clock_v1" home="exorsr"/>
+        <assemble verify="433b40315cfc7f87fc77095f5bc58a9e" src="D0" home="exorsr"/>
+        <assemble verify="1014cec28bfb29238807bf8470ca36a5" src="D1" home="exorsr"/>
+        <assemble verify="f518763d5c98d2814b42df1a311e6b77" src="TERM" home="exorsr"/>
+        <assemble verify="e199b2a49281ff96b9d2034e3c958dd7" src="TCAcia" home="exorsr"/>
+    </target>
+
     <!-- COCO Level II -->
     <target name="color3" depends="prepare">
         <assemble src="OS9p1" home="color3" verify="5b74b74a31534bc8cee02603341f7fe6"/>
@@ -174,6 +190,7 @@
         <assemble src="IOMan_ed10" home="dragon128" verify="e96ceab669a671491ccc2790cc51e18d"/>
     </target>
 
+    <!-- GIMIX Level II -->
     <target name="l2gimix" depends="prepare">
         <assemble src="Boot" home="l2gimix" verify="9b746701de4b4304523e4a9326dc0cab"/>
         <assemble src="G68" home="l2gimix" verify="3a94629a611619271ddc39ed59640cdb"/>
@@ -196,6 +213,21 @@
     <target name="cms9639" depends="prepare">
         <assemble src="OS9p1_ed12" home="cms9639"  verify="c62663295a8df03e8d370e1f2c9c2eb1"/>
         <assemble src="Boot" home="cms9639"  verify="921665455cf8e35d2e966368706e72f8"/>
+    </target>
+
+    <!-- Positron 9000 -->
+    <target name="positron9000" depends="prepare">
+        <assemble src="SysGo" home="positron9000"  verify="352be770ab96dd0e37befdd381f2c0bc"/>
+        <assemble src="Init" home="positron9000"  verify="40e3fab961a67ab92e62068ce718615f"/>
+        <assemble src="OS9p1" home="positron9000"  verify="ee22c19653e4a2b04eefae0fe570781d"/>
+        <assemble src="OS9p2" home="positron9000"  verify="9f8e54ac240df9b5879ad602f8fbf5e6"/>
+        <assemble src="Acia" home="positron9000"  verify="3f8f6b01e0966f2a8b1e135f73f75090"/>
+        <assemble src="Clock" home="positron9000"  verify="87bc3459fd407ff9504a0070e9feb4a8"/>
+        <assemble src="Cons" home="positron9000"  verify="5e5e75f768d7b82f4eab5e9bf84271e9"/>
+        <assemble src="Disk" home="positron9000"  verify="c1823bf4bcc2cddbc3836d0936d5c143"/>
+        <assemble src="Gd9000" home="positron9000"  verify="0b024fe067d7f4e112053670d2171ca6"/>
+        <assemble src="RBF" home="positron9000"  verify="2e81752ebd6658e1c68e6a3f74ecaf5d"/>
+        <assemble src="SCF" home="positron9000"  verify="43de9839d3df194c0394606e1757a398"/>
     </target>
 
     <target name="virtual" depends="prepare">
@@ -225,44 +257,12 @@
 
     </target>
 
-    <target name="dynacalc" depends="prepare">
-        <assemble src="install.dc_drg" home="dynacalc" verify="344403d808333757d194bbb0792c44df"/>
-        <assemble src="dynacalc_473" home="dynacalc" verify="3100d5e1003ffa10fa0578af294fb399"/>
-        <assemble src="dynacalc_485" home="dynacalc" verify="6ab199b1630bc8dd8d3fc798f36d287f"/>
-        <assemble src="coco_485.cor" home="dynacalc" verify="286f15fc5a7af616ef026cf31cef4fe5"/>
-        <assemble src="dragon64_473.cor" home="dynacalc" verify="81b8cf9c0bcdc9b9e67c1c0b0b9c7f78"/>
-        <assemble src="ansi_473.cor" home="dynacalc" verify="5874eeb0766df190b3946575c42228a7"/>
-        <assemble src="go80.trm" home="dynacalc" verify="0bc8c7638d215ab6730bb1c93a96eaa2"/>
-    </target>
-
     <!-- Stylograph -->
     <target name="stylograph" depends="prepare">
         <assemble src="stylo_d64" home="stylograph" verify="9b5c2a4b5da49e3414f2c51b37d06596"/>
         <assemble src="stylo_std" home="stylograph" verify="5b6b54ab65c1ff865486639d5dbbd40f"/>
         <assemble src="styfix_d64" home="stylograph" verify="65c5cc35abe3903a5ceb6a9c5c8e9568"/>
         <assemble src="stylo_3" home="stylograph" verify="daf4c997f44cfbe4d57d5518f469dfa2"/>
-    </target>
-
-    <!-- RMS Report Management System -->
-    <target name="rms" depends="prepare">
-        <assemble src="rms" home="rms" verify="1e5af27b963b2ef3635edd2c526d495f"/>
-        <assemble src="report" home="rms" verify="f9820a325090ec307208d8f5667358da"/>
-    </target>
-
-    <!-- BASIC09 -->
-    <target name="basic09" depends="prepare">
-        <assemble src="basic09_d64_y2k" home="basic09" verify="df7d21b8ef4250f4927a2f2c9a3e4b69"/>
-        <assemble src="runb_tandy_y2k" home="basic09" verify="08da732414bafa6e7b1cc00e737d5195"/>
-        <assemble src="runb_generic_y2k" home="basic09" verify="5ae664915244495285014c500624b0b7"/>
-        <assemble src="runb_generic" home="basic09" verify="5c1e4a64e8ea15e10c02ba89cc4507c7"/>
-        <assemble src="basic09_generic_y2k" home="basic09" verify="67b113de00c1670c67c2817aaf93738f"/>
-        <assemble src="runb_tandy" home="basic09" verify="f6f4e66fe4cdd6e7c8e1eca5b74791ba"/>
-        <assemble src="basic09_tandy" home="basic09" verify="85136e22ffa826e607a897dcfb39fd64"/>
-        <assemble src="basic09_tandy_y2k" home="basic09" verify="2bd9a95d3d42cc5826ef43448e3ebaff"/>
-        <assemble src="basic09_d64" home="basic09" verify="3503d7e1d0169aaa54d9c81ceaef0000"/>
-        <assemble src="basic09_generic" home="basic09" verify="ede76a6833915309482772012db053ee"/>
-        <assemble src="gfx" home="basic09" verify="0eb5abf3b848f607b0e1a0e5b0d78ad9"/>
-        <assemble src="syscall" home="basic09" verify="c8de8a9616ef7a7e1bfbd44072cf9e06"/>
     </target>
 
 </project>
