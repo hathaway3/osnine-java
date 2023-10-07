@@ -17,7 +17,7 @@ public abstract class USim implements Runnable {
     private static final Logger LOGGER = LoggerFactory.getLogger(USim.class);
 
     /** Flag: is the CPU halted? */
-    public boolean halted;
+    public volatile boolean halted;
 
     /** Reference to the memory bus. */
     private MemoryBus bus;
@@ -145,7 +145,7 @@ public abstract class USim implements Runnable {
     /*
      * Set the halt flag.
      */
-    public void halt() {
+    public void stopRun() {
         halted = true;
     }
 
@@ -197,7 +197,7 @@ public abstract class USim implements Runnable {
                 msg != null ? msg : "",
                 Integer.toHexString(pc.intValue()),
                 Integer.toHexString(ir));
-        halt();
+        halted = true;
         //dumpCore();
         throw new RuntimeException(msg);
     }

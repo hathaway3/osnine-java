@@ -65,23 +65,5 @@ public interface Bus8Motorola extends MemoryBus {
      */
     boolean isFIRQActive();
 
-    /**
-     * Get the number of read/writes to bus since the start.
-     *
-     * @return the number of cycles.
-     */
-    long getCycleCounter();
-
-    /**
-     * Ask the bus to call a given method when the number of
-     * read/write operations has reached given number.
-     *
-     * @param cycles - the number of cycles to trigger at
-     * @param method - the operation to call.
-     */
-    void callbackIn(int cycles, BitReceiver method);
-
-    void lock();
-    void unlock();
 }
 

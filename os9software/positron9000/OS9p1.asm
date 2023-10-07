@@ -208,9 +208,9 @@ Cold16 std ,X++ mark free entry
          ldd   #DAT.WrEn+$0150  IOBlock?
          std   ,x++
          ldd   #DAT.WrEn+$0140
-         std   ,x++
+         std   ,x++ set I/O block
          ldd   #ROMBlock ($01FE)
-L0190    std   ,x++
+L0190    std   ,x++ set ROM block
          incb
          bne   L0190
  ldx D.Tasks get task number table
@@ -234,6 +234,15 @@ Cold20 equ *
  ldd 0,s
  endc
  subd D.BlkMap get block number
+ ifle DAT.BlMx-255
+ ifeq MappedIO-true
+ cmpb #IOBlock is this I/O block?
+ else
+ cmpb #DAT.BlMx last block?
+ endc
+ beq Cold30 branch of so
+ stb DAT.Regs+RAMCount set block register
+ else
  cmpd #DAT.BlMx
  bcc Cold30
  ifne DAT.WrEn
@@ -291,11 +300,18 @@ Cold50 lda 0,x is this RAM block?
 Cold55 equ *
 Cold60 pshs Y,X save ptrs
  lbsr AdjImg adjust DAT image ptr
-         ldd   ,y
-         std   DAT.Regs
-         lda   ,x
+ ifle DAT.BLMx-255
+ ldb 1,Y get DAT image
+ stb DAT.Regs set block zero register
+ lda 0,x get next byte
+ clr DAT.Regs clear block zero register
+ else
+         ldd   ,y get DAT image
+         std   DAT.Regs set block zero register
+         lda   0,x get next byte
          ldx   #$0000+DAT.WrEn
          stx   DAT.Regs
+ endc
  puls y,x retrieve ptrs
  cmpa #$87 could be module?
  bne Cold70 branch if not
@@ -2334,14 +2350,25 @@ F.LDAXY ldx R$X,u get block offset
 *
 * Calls: none
 *
-LDAXY    pshs  x,b,cc
-         ldd   ,y
+LDAXY equ *
+ ifge DAT.BlSz-4096
+ pshs cc save masks
+ lda 1,Y get block number
  orcc #IntMasks set interrupt masks
-         std   DAT.Regs
-         lda   ,x
-         ldx   #$0000+DAT.WrEn
-         stx   DAT.Regs
-         puls  pc,x,b,cc
+ sta DAT.Regs set block zero
+ lda 0,X get byte
+ clr DAT.Regs reset block zero
+ puls pc,cc
+ else
+ pshs x,b,cc
+ ldd 0,y get block number
+ orcc #IntMasks set interrupt masks
+ std DAT.Regs set block zero
+ lda 0,X get byte
+ ldx #$0000+DAT.WrEn
+ stx DAT.Regs reset block zero
+ puls pc,x,b,cc
+ endc
  page
 ***********************************************************
 *
@@ -2359,16 +2386,27 @@ LDAXY    pshs  x,b,cc
 *
 * Calls: AdjImg
 *
-LDAXYP    pshs  x,b,cc
-         ldd   ,y
+LDAXYP equ *
+ ifge DAT.BlSz-4096
+ lda 1,y get DAT block image
+ pshs cc save masks
  orcc #IntMasks set interrupt masks
-         std   DAT.Regs
-         lda   ,x
-         ldx   #$0000+DAT.WrEn
-         stx   DAT.Regs
-         puls  x,b,cc
-         leax 1,x
-         bra   AdjImg
+ sta DAT.Regs set block zero
+ lda ,x+ get byte
+ clr DAT.Regs reset block zero
+ puls cc reset interrupt masks
+ else
+ pshs  x,b,cc
+ ldd 0,y get DAT block image
+ orcc #IntMasks set interrupt masks
+ std DAT.Regs set block zero
+ lda 0,x
+ ldx #$0000+DAT.WrEn
+ stx DAT.Regs reset block zero
+ puls x,b,cc
+ leax 1,x
+ endc
+ bra AdjImg adjust image
 
 
 ***********************************************************
@@ -2431,19 +2469,19 @@ F.LDDDXY ldd R$D,u get offset offset
 *
 * Calls: AdjImg, LDAXYP, LDAXY
 *
-LDDDXY    pshs  y,x
-         leax  d,x
+LDDDXY pshs Y,X save registers
+ leax D,X add address offset
          lbsr  L0C6F
          leay  a,y
-         bsr   LDAXYP
+ bsr LDAXYP get MSB
          pshs  a,cc
-         ldd   ,y
+ ldd ,y
  orcc #IntMasks set interrupt masks
-         std   DAT.Regs
-         ldb   ,x
-         ldx   #$0000+DAT.WrEn
-         stx   DAT.Regs
-         puls  pc,y,x,a,cc
+ std DAT.Regs
+ ldb 0,x
+ ldx #$0000+DAT.WrEn
+ stx DAT.Regs reset block zero
+ puls pc,y,x,a,cc
  page
 ***********************************************************
 *

@@ -81,6 +81,7 @@ public class IMDHandler {
      * Constructor. Loads the ImageDisk file.
      *
      * @param fileName - path of file to load.
+     * @throws java.io.IOException if file doesn't match format
      */
     public IMDHandler(String fileName) throws IOException {
         this(new File(fileName));
@@ -90,6 +91,7 @@ public class IMDHandler {
      * Constructor. Loads the ImageDisk file.
      *
      * @param imdFile - file to load.
+     * @throws java.io.IOException if file doesn't match format
      */
     public IMDHandler(File imdFile) throws IOException {
         byte[] disk;
@@ -210,6 +212,7 @@ public class IMDHandler {
      *
      * @param head - logical side of disk.
      * @param trackNum - logical track number.
+     * @return true if the track is MFM mode, false if FM.
      */
     public boolean isMFM(int head, int trackNum) {
         Track t = getPhysTrack(head, trackNum);
@@ -234,6 +237,7 @@ public class IMDHandler {
      *
      * @param head - logical side of disk.
      * @param trackNum - logical track number.
+     * @return transfer rate in bytes per second.
      */
     public int getTransferRate(int head, int trackNum) {
         Track t = getPhysTrack(head, trackNum);
@@ -316,6 +320,8 @@ public class IMDHandler {
 
     /**
      * Return the label of the IMD file.
+     *
+     * @return the comment.
      */
     public String getHeader() {
         return header;
@@ -347,6 +353,8 @@ public class IMDHandler {
 
     /**
      * Return the label of the IMD file.
+     *
+     * @return label
      */
     public String getLabel() {
         return label;
@@ -354,6 +362,8 @@ public class IMDHandler {
 
     /**
      * Set a new label - must be ASCII.
+     *
+     * @param newLabel - New label.
      */
     public void setLabel(String newLabel) {
         label = newLabel;
@@ -374,6 +384,9 @@ public class IMDHandler {
      * Save disk to file.
      *
      * @param imdFile - The name of the file to save to.
+     * @throws java.io.FileNotFoundException - if unable to write to file's directory
+     * @throws java.io.UnsupportedEncodingException if comment is not ASCII
+     * @throws java.io.IOException if unable to write file
      */
     public void saveDisk(File imdFile) throws FileNotFoundException,
             UnsupportedEncodingException, IOException {
@@ -471,6 +484,9 @@ public class IMDHandler {
      * @param side - value 0 or 1.
      * @param track - 0 to numTracks - 1
      * @param sector - sector on track
+     * @param data - Date to write to the sector.
+     *
+     * @throws java.io.IOException if unable to read sector
      */
     public void writeSector(int side, int track, int sector, byte[] data)
                 throws IOException {
@@ -510,6 +526,7 @@ public class IMDHandler {
      * @param track - 0 to numTracks - 1
      * @param sector - sector on track
      * @return true is track is bad
+     * @throws java.io.IOException if unable to read sector
      */
     public boolean isBadSector(int side, int track, int sector)
                 throws IOException {
@@ -521,6 +538,8 @@ public class IMDHandler {
      * Get number of physical sides.
      * It is possible for a disk format to continue the numbering of sectors
      * on the next side, pretending the disk has only one side.
+     *
+     * @return number of sides.
      */
     public int getNumSides() {
         return numHeads;
@@ -528,6 +547,8 @@ public class IMDHandler {
 
     /**
      * Get number of physical tracks on one side.
+     *
+     * @return number of tracks.
      */
     public int getNumTracks() {
         return numTracks;
@@ -549,6 +570,10 @@ public class IMDHandler {
 
     /**
      * Get size of sectors on a specific physical track.
+     *
+     * @param side - value 0 or 1.
+     * @param track - 0 to numTracks - 1
+     * @return number of sectors.
      */
     public int getSectorSize(int side, int track) {
         Track t = tracks[side][track];

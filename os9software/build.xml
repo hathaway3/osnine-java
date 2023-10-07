@@ -213,6 +213,9 @@
     <target name="cms9639" depends="prepare">
         <assemble src="OS9p1_ed12" home="cms9639"  verify="c62663295a8df03e8d370e1f2c9c2eb1"/>
         <assemble src="Boot" home="cms9639"  verify="921665455cf8e35d2e966368706e72f8"/>
+        <assemble src="9639_OS92.rom" home="cms9639" verify="5529810dedff592bceba4ddf662fbed5"/>
+        <assemble src="OS9p2" home="cms9639"  verify="af222dd85b64d4c73a8972691268fb36"/>
+        <assemble src="Clock" home="cms9639"  verify=""/>
     </target>
 
     <!-- Positron 9000 -->
@@ -228,6 +231,7 @@
         <assemble src="Gd9000" home="positron9000"  verify="0b024fe067d7f4e112053670d2171ca6"/>
         <assemble src="RBF" home="positron9000"  verify="2e81752ebd6658e1c68e6a3f74ecaf5d"/>
         <assemble src="SCF" home="positron9000"  verify="43de9839d3df194c0394606e1757a398"/>
+        <assemble src="Padder" home="positron9000"  verify="d481c64894816c7a3fe13abba5d7556a"/>
     </target>
 
     <target name="virtual" depends="prepare">
