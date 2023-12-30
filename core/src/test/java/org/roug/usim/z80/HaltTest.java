@@ -8,7 +8,6 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import org.junit.Before;
 import org.junit.Test;
-import org.roug.usim.Bus8Intel;
 
 public class HaltTest extends Framework {
 
@@ -105,7 +104,7 @@ public class HaltTest extends Framework {
     private class SendStopRun extends TimerTask {
         public void run() {
             myTestCPU.stopRun();
-            myTestCPU.getBus().signalIRQ(true); // Execute a hardware interrupt
+            myTestCPU.getBus().signalINT(true); // Execute a hardware interrupt
         }
     }
 

@@ -3,7 +3,6 @@ package org.roug.usim.z80;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import org.roug.usim.Bus8Intel;
 import org.roug.usim.MemorySegment;
 import org.roug.usim.RandomAccessMemory;
 import org.roug.usim.Register;
@@ -37,6 +36,9 @@ public class Z80 extends USimIntel {
     private boolean iff1 = false;
     /** Temporary storage location for IFF1. */
     private boolean iff2 = false;
+
+    /** For delayed enabling of interrupts. */
+    private boolean turnOnEI = false;
 
     /** Stack Pointer register. */
     final Word registerSP = new Word("SP");
@@ -170,10 +172,10 @@ public class Z80 extends USimIntel {
     private Bus8Intel bus;
 
     /**
-     * Do we have active IRQs and we're accepting IRQs?
+     * Do we have active INTs and we're accepting INTs?
      */
     private boolean isINTActive() {
-        return iff1 && bus.isIRQActive();
+        return iff1 && bus.isINTActive();
     }
 
     /**
@@ -257,8 +259,7 @@ public class Z80 extends USimIntel {
     public void reset() {
         resetSignal = false;
         interruptMode = 0;
-        iff1 = false;
-        iff2 = false;
+        helpDI();
         pc.set(0);
         registerI.set(0);
         registerR = 0;
@@ -291,6 +292,9 @@ public class Z80 extends USimIntel {
         if (isINTActive()) {
             doInterrupt();
         }
+        if (turnOnEI) {
+            delayEI();
+        }
     }
 
     /**
@@ -298,23 +302,21 @@ public class Z80 extends USimIntel {
      * TODO
      */
     private void doInterrupt() {
-        iff1 = false;
-        iff2 = false;
+        int n;
+        helpDI();
         switch (interruptMode) {
         case 0:
-            bus.ackInterrupt(true);
             activeFromRegTbl = regTable;
             activeReg16 = registerHL;
-            ir = bus.readIO(0); // FIXME Don't use 0
+            ir = bus.getDeviceValue();
             parseIR();
-            bus.ackInterrupt(false);
+            break;
         case 1:
+            n = bus.getDeviceValue(); // Ignored
             helpCALL(MODE0_ADDR);
             break;
         default: // mode 2
-            bus.ackInterrupt(true);
-            int n = bus.readIO(0); // FIXME
-            bus.ackInterrupt(false);
+            n = bus.getDeviceValue();
             int newAddress = registerI.get() * 256 + (n & 0xFE);
             helpCALL(newAddress);
         }
@@ -322,7 +324,7 @@ public class Z80 extends USimIntel {
 
     /**
      * Handle nonmaskable interrupt.
-     * TODO
+     *
      */
     private void doNMI() {
         iff2 = iff1;
@@ -663,7 +665,8 @@ public class Z80 extends USimIntel {
                 helpCondJump(!registerF.isSetS());
                 break;
             case 0xF3:
-                iff1 = false; iff2 = false; break;
+                helpDI();
+                break;
             case 0xF4:
                 helpCALLcc(); break;
             case 0xF5:
@@ -680,7 +683,8 @@ public class Z80 extends USimIntel {
                 helpCondJump(registerF.isSetS());
                 break;
             case 0xFB:
-                iff1 = true; iff2 = true; break;
+                helpEI();
+                break;
             case 0xFC:
                 helpCALLcc(); break;
             case 0xFD:
@@ -1063,15 +1067,15 @@ public class Z80 extends USimIntel {
 
     /**
      * Return from interrupt subroutine.
-     * TODO: Implement side-effects.
+     * Tells the first interrupting device that CPU did a RETI.
      */
     private void helpRETI() {
         helpRET();
+        bus.cpuRETI();
     }
 
     /**
      * Return from non-maskable interrupt subroutine.
-     * TODO: Implement side-effects.
      */
     private void helpRETN() {
         helpRET();
@@ -1237,7 +1241,7 @@ public class Z80 extends USimIntel {
     private void halt() {
         try {
             synchronized(bus) {
-                while(!(bus.isIRQActive() || bus.isNMIActive() )) {
+                while(!(bus.isINTActive() || bus.isNMIActive() )) {
                     bus.wait();
                 }
             }
@@ -1496,6 +1500,31 @@ public class Z80 extends USimIntel {
         registerF.setH(false);
         registerF.setN(false);
         registerF.setC(true);
+    }
+
+    /**
+     * Enable Interrupt (EI).
+     * The EI instruction doesn't enable interrupts immediately. Interrupts
+     * aren't enabled until after the <em>next</em> instruction (the instruction
+     * following the EI). This is why you are guaranteed not to get an interrupt
+     * in between an EI/RETI pair.
+     */
+    private void helpEI() {
+        turnOnEI = true;
+    }
+
+    private void delayEI() {
+        turnOnEI = false;
+        iff1 = true;
+        iff2 = true;
+    }
+
+    /**
+     * Disable Interrupt (DI).
+     */
+    private void helpDI() {
+        iff1 = false;
+        iff2 = false;
     }
 
 /*======================================================
@@ -1769,7 +1798,7 @@ public class Z80 extends USimIntel {
      * The contents of Register C are placed on the bottom half (A0 through A7)
      * of the address bus to select the I/O device at one of 256 possible
      * ports. The contents of Register B are placed on the top half (A8 through
-     *  A15) of the address bus at this time. Then the byte contained in
+     * A15) of the address bus at this time. Then the byte contained in
      * register r is placed on the data bus and written to the selected
      * peripheral device. Register r identifies any of the CPU registers shown
      * in the following table, which also shows the corresponding three-bit r
@@ -1782,6 +1811,11 @@ public class Z80 extends USimIntel {
 
     /**
      * IN r (C).
+     * The contents of Register C are placed on the bottom half (A0 through A7)
+     * of the address bus to select the I/O device at one of 256 possible ports.
+     * The contents of Register B are placed on the top half (A8 through A15) of
+     * the address bus at this time. Then one byte from the selected port is
+     * placed on the data bus and written to register r in the CPU-
      */
     private void helpInRC() {
         int newVal = bus.readIO(registerBC.get());
